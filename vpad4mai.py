@@ -49,11 +49,24 @@ def get_local_ip():
 
 
 # 更新按键映射
+# 修改maimai_keys字典，以模拟按下小键盘的按键，同时保留left区的字母键
 maimai_keys = {
-    'right_0': ord('6'), 'right_1': ord('3'), 'right_2': ord('2'), 'right_3': ord('1'),
-    'right_4': ord('4'), 'right_5': ord('7'), 'right_6': ord('8'), 'right_7': ord('9'),
-    'left_0': ord('D'), 'left_1': ord('C'), 'left_2': ord('X'), 'left_3': ord('Z'),
-    'left_4': ord('A'), 'left_5': ord('Q'), 'left_6': ord('W'), 'left_7': ord('E')
+    'right_0': 0x66,  # VK_NUMPAD6
+    'right_1': 0x63,  # VK_NUMPAD3
+    'right_2': 0x62,  # VK_NUMPAD2
+    'right_3': 0x61,  # VK_NUMPAD1
+    'right_4': 0x64,  # VK_NUMPAD4
+    'right_5': 0x67,  # VK_NUMPAD7
+    'right_6': 0x68,  # VK_NUMPAD8
+    'right_7': 0x69,  # VK_NUMPAD9
+    'left_0': ord('D'),  # 保留字母键D
+    'left_1': ord('C'),  # 保留字母键C
+    'left_2': ord('X'),  # 保留字母键X
+    'left_3': ord('Z'),  # 保留字母键Z
+    'left_4': ord('A'),  # 保留字母键A
+    'left_5': ord('Q'),  # 保留字母键Q
+    'left_6': ord('W'),  # 保留字母键W
+    'left_7': ord('E')   # 保留字母键E
 }
 
 def press_key(key_code):
