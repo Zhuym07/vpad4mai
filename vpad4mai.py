@@ -5,6 +5,7 @@ import subprocess
 from flask import Flask, request, render_template_string, jsonify
 import win32api
 import win32con
+import subprocess
 import time
 import qrcode
 from io import StringIO
@@ -51,22 +52,26 @@ def get_local_ip():
 # 更新按键映射
 # 修改maimai_keys字典，以模拟按下小键盘的按键，同时保留left区的字母键
 maimai_keys = {
-    'right_0': 0x66,  # VK_NUMPAD6
-    'right_1': 0x63,  # VK_NUMPAD3
-    'right_2': 0x62,  # VK_NUMPAD2
-    'right_3': 0x61,  # VK_NUMPAD1
-    'right_4': 0x64,  # VK_NUMPAD4
-    'right_5': 0x67,  # VK_NUMPAD7
-    'right_6': 0x68,  # VK_NUMPAD8
-    'right_7': 0x69,  # VK_NUMPAD9
-    'left_0': ord('D'),  # 保留字母键D
-    'left_1': ord('C'),  # 保留字母键C
-    'left_2': ord('X'),  # 保留字母键X
-    'left_3': ord('Z'),  # 保留字母键Z
-    'left_4': ord('A'),  # 保留字母键A
-    'left_5': ord('Q'),  # 保留字母键Q
-    'left_6': ord('W'),  # 保留字母键W
-    'left_7': ord('E')   # 保留字母键E
+    'right_0': 0x69,  # VK_NUMPAD9
+    'right_1': 0x66,  # VK_NUMPAD6
+    'right_2': 0x63,  # VK_NUMPAD3
+    'right_3': 0x62,  # VK_NUMPAD2
+    'right_4': 0x61,  # VK_NUMPAD1
+    'right_5': 0x64,  # VK_NUMPAD4
+    'right_6': 0x67,  # VK_NUMPAD7
+    'right_7': 0x68,  # VK_NUMPAD8
+    'left_0': ord('E'),  # 保留字母键E
+    'left_1': ord('D'),  # 保留字母键D
+    'left_2': ord('C'),  # 保留字母键C
+    'left_3': ord('X'),  # 保留字母键X
+    'left_4': ord('Z'),  # 保留字母键Z
+    'left_5': ord('A'),  # 保留字母键A
+    'left_6': ord('Q'),  # 保留字母键Q
+    'left_7': ord('W'),  # 保留字母键W
+    'ctrlI': ('CTRL', 'I'),
+    'G': 'G',
+    'H': 'H',
+    'I': 'I'
 }
 
 def press_key(key_code):
@@ -103,12 +108,20 @@ def index():
             width: 100%;
             margin-bottom: 20px;
         }
+        .special-keys {
+            display: flex; /* 启用Flexbox布局 */
+            justify-content: space-around; /* 按钮之间的间距平均分布 */
+            align-items: center; /* 垂直居中对齐 */
+            flex-wrap: wrap; /* 允许元素换行 */
+        }
+
         .controller {
             width: 300px;
             height: 300px;
             position: relative;
             margin: 10px;
         }
+        
         .button {
             width: 60px;
             height: 60px;
@@ -122,6 +135,25 @@ def index():
             color: white;
             cursor: pointer;
             user-select: none;
+        }
+        .button_sp {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: black;
+            cursor: pointer;
+            user-select: none;
+            margin: 10px; /* 添加间距 */
+        }
+        .buttons_container {
+            display: flex;
+            justify-content: center; /* 或者使用其他方式来调整按钮之间的间距 */
+            align-items: center;
         }
         .left .button { background-color: #51bcf3; }
         .right .button { background-color: #f74000; }
@@ -163,7 +195,16 @@ def index():
         <div class="controller left"></div>
         <div class="controller right"></div>
     </div>
-
+    <br>                         
+    <div class="special-keys">
+        <div class="buttons_container">
+            <button class="button_sp" id="ctrlI">skip<br>101%</button>
+            <button class="button_sp" id="keyI">skip<br>100%</button>
+            <button class="button_sp" id="keyG">auto<br>rAP</button>
+            <button class="button_sp" id="keyH">auto<br>rFC+</button>
+        </div>
+    </div>
+    <br><br>
     <div class="url-processor">
         <input type="text" id="urlInput" placeholder="输入二维码链接">
         <p>登入二维码 -> 右上角[...] -> 复制链接</p>
@@ -177,8 +218,8 @@ def index():
             const centerY = 150;
             const radius = 120;
             const buttonLabels = side === 'left' ? 
-                ['D', 'C', 'X', 'Z', 'A', 'Q', 'W', 'E'] : 
-                ['6', '3', '2', '1', '4', '7', '8', '9'];
+                ['E', 'D', 'C', 'X', 'Z', 'A', 'Q', 'W'] : 
+                ['9', '6', '3', '2', '1', '4', '7', '8'];
 
             for (let i = 0; i < 8; i++) {
                 const angle = (i * Math.PI / 4) - (Math.PI / 8);
@@ -224,6 +265,34 @@ def index():
                 document.getElementById('result').textContent = data.message;
             });
         });
+        document.getElementById('ctrlI').addEventListener('click', function() {
+            fetch('/keypress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'ctrlI' })
+            });
+        });
+        document.getElementById('keyG').addEventListener('click', function() {
+            fetch('/keypress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'G' })
+            });
+        });
+                document.getElementById('keyH').addEventListener('click', function() {
+            fetch('/keypress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'H' })
+            });
+        });
+                document.getElementById('keyI').addEventListener('click', function() {
+            fetch('/keypress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'I' })
+            });
+        });
     </script>
 </body>
 </html>
@@ -232,7 +301,16 @@ def index():
 @app.route('/keypress', methods=['POST'])
 def keypress():
     key = request.json['key']
-    if key in maimai_keys:
+    if key == 'ctrlI':
+        # 模拟按下CTRL+I
+        win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)  # 按下CTRL
+        press_key(ord('I'))  # 按下I
+        win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)  # 释放CTRL
+    elif key in ['G', 'H', 'I']:
+        # 模拟按下G, H, 或I
+        press_key(ord(key))
+    elif key in maimai_keys:
+        # 处理其他已定义的按键映射
         press_key(maimai_keys[key])
     return jsonify(success=True)
 
@@ -273,4 +351,4 @@ if __name__ == '__main__':
     print('url:', url)
     
     logging.getLogger('werkzeug').setLevel(logging.WARNING)
-    app.run(host='0.0.0.0', port=args.PORT, debug=True)
+    app.run(host='0.0.0.0', port=args.PORT, debug=False)
